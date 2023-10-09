@@ -110,25 +110,24 @@ func processRequest(w http.ResponseWriter, r *http.Request) {
     // Insert request and response to MongoDB
     clientOptions := options.Client().ApplyURI("mongodb+srv://<username>:<password>@<cluster>/?retryWrites=true&w=majority")
     client, err := mongo.Connect(context.TODO(), clientOptions)
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer client.Disconnect(context.TODO())
+    if err == nil {
+        defer client.Disconnect(context.TODO())
 
-    collection := client.Database("rproxy").Collection("requests")
-    request := Request{ip: ip, path: path}
-    log.Printf("Request: %+v\n", request)
+        collection := client.Database("rproxy").Collection("requests")
+        request := Request{ip: ip, path: path}
+        log.Printf("Request: %+v\n", request)
 
-    _, err = collection.InsertOne(context.TODO(), request)
-    if err != nil {
-        log.Fatal(err)
-    }
+        _, err = collection.InsertOne(context.TODO(), request)
+        if err != nil {
+            log.Fatal(err)
+        }
 
-    collection = client.Database("rproxy").Collection("responses")
-    response := Response{data: data, err: err}
-    _, err = collection.InsertOne(context.TODO(), response)
-    if err != nil {
-        log.Fatal(err)
+        collection = client.Database("rproxy").Collection("responses")
+        response := Response{data: data, err: err}
+        _, err = collection.InsertOne(context.TODO(), response)
+        if err != nil {
+            log.Fatal(err)
+        }
     }
 
     w.Header().Set("Content-Type", "application/json; charset=utf-8")
